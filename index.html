@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Álbum de Fotos - Multicuadrícula</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --book-width: min(92vw, 450px);
+            --book-height: min(calc(var(--book-width) * 4 / 3), 600px, 82vh);
+            --page-color: #fdfdfd;
+            --cover-color: #000;
+            --accent-color: #fff; /* Dorado para detalles */
+        }
+
+        body {
+            background-color: #e5e7eb;
+            perspective: 2000px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Contenedor del Libro */
+        .book-container {
+            position: relative;
+            width: var(--book-width);
+            height: var(--book-height);
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+
+        /* Estilo de cada página */
+        .page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transform-origin: left;
+            transform-style: preserve-3d;
+            transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+            cursor: pointer;
+        }
+
+        .page.flipped {
+            transform: rotateY(-180deg);
+        }
+
+        /* Caras de la página */
+        .front, .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            backface-visibility: hidden;
+            padding: 30px;
+            box-shadow: inset 3px 0px 20px rgba(0,0,0,0.1);
+            border: 1px solid #d1d5db;
+            background-color: var(--page-color);
+            border-radius: 0 15px 15px 0;
+        }
+
+        .back {
+            transform: rotateY(180deg);
+            border-radius: 15px 0 0 15px;
+        }
+
+        /* Portadas Especiales */
+        .cover-front {
+            background-color: var(--cover-color) !important;
+            color: var(--accent-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border: none !important;
+        }
+
+        .cover-front h1 {
+            border: 2px solid var(--accent-color);
+            padding: 20px;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        .cover-back {
+            background-color: var(--cover-color) !important;
+            border: none !important;
+        }
+
+        /* Cuadrícula de fotos (6 fotos por cara) */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 12px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .photo-wrapper {
+            background: #eee;
+            border: 4px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .photo-wrapper:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .photo-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .footer-logo {
+            position: absolute;
+            bottom: 11px;
+            width: 40px;
+            height: auto;
+            opacity: 0.7;
+        }
+
+        .front .footer-logo { right: 20px; }
+        .back .footer-logo { left: 20px; }
+
+        @media (max-width: 640px) {
+            body {
+                justify-content: center;
+                padding: 16px 0;
+            }
+
+            .front, .back {
+                padding: 14px;
+                border-radius: 0 12px 12px 0;
+            }
+
+            .back {
+                border-radius: 12px 0 0 12px;
+            }
+
+            .cover-front h1 {
+                padding: 12px;
+                font-size: 1.25rem;
+                letter-spacing: 2px;
+            }
+
+            .photo-grid {
+                gap: 8px;
+            }
+
+            .photo-wrapper {
+                border-width: 3px;
+            }
+
+            .footer-logo {
+                width: 28px;
+                bottom: 8px;
+            }
+
+            .front .footer-logo { right: 10px; }
+            .back .footer-logo { left: 10px; }
+        }
+
+        /* Efecto de lomo de libro */
+        .page::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 10px;
+            height: 100%;
+            background: linear-gradient(to right, rgba(0,0,0,0.1), transparent);
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="book" class="book-container">
+        <!-- Las páginas se generarán dinámicamente -->
+    </div>
+
+    <p class="mt-6 md:mt-12 text-gray-400 italic text-xs md:text-sm text-center px-4">Toca las páginas para explorar los recuerdos</p>
+
+    <script>
+        // Array de fotos de ejemplo (puedes añadir muchísimas más)
+        const allPhotos = [
+            "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400",
+            "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400",
+            "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400",
+            "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400",
+            "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400",
+            "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=400",
+            "https://images.unsplash.com/photo-1433086566207-c5858314ee1c?w=400",
+            "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=400",
+            "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400",
+            "https://images.unsplash.com/photo-1475924156735-512359561b3e?w=400",
+            "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=400",
+            "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=400",
+            "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=400",
+            "https://images.unsplash.com/photo-1431411207774-da3c7311b5a8?w=400",
+            "https://images.unsplash.com/photo-1510784722466-f2aa9c52fed6?w=400",
+            "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400",
+            "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=400",
+            "https://images.unsplash.com/photo-1505144808419-1957a94ca61e?w=400",
+            "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400",
+            "https://images.unsplash.com/photo-1490730141103-6ac217d994b4?w=400",
+            "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400",
+            "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400",
+            "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400",
+            "https://images.unsplash.com/photo-1444464666168-49d633b867ad?w=400"
+        ];
+
+        const PHOTOS_PER_FACE = 6;
+        const book = document.getElementById('book');
+        let currentPage = 0;
+        let lastTouchTime = 0;
+
+        function initAlbum() {
+            // Generar Portada
+            createCover();
+
+            // Generar Páginas con cuadrícula
+            // Cada página tiene 2 caras, cada cara tiene PHOTOS_PER_FACE
+            const photosPerPage = PHOTOS_PER_FACE * 2;
+            const totalPages = Math.ceil((allPhotos.length) / photosPerPage);
+
+            for (let i = 0; i < totalPages; i++) {
+                const startIdx = i * photosPerPage;
+                const face1Photos = allPhotos.slice(startIdx, startIdx + PHOTOS_PER_FACE);
+                const face2Photos = allPhotos.slice(startIdx + PHOTOS_PER_FACE, startIdx + photosPerPage);
+                
+                createGridPage(face1Photos, face2Photos, i + 1);
+            }
+
+            // Contraportada final
+            createBackCover();
+
+            // Ajustar Z-index inicial
+            updateZIndex();
+
+            // Interacciones globales para escritorio y móvil
+            setupBookInteractions();
+        }
+
+        function createCover() {
+            const page = document.createElement('div');
+            page.className = 'page';
+            page.innerHTML = `
+                <div class="front cover-front">
+                    <img src="logo_mobil.png" alt="Logo Mobil" style="width: 120px; height: auto; margin-bottom: 30px;">
+                    <h1>Recuerdos<br>Mobil Consorcio</h1>
+                    <p class="mt-4 opacity-70">2026</p>
+                </div>
+                <div class="back">
+                    <div class="photo-grid">${generateGridHTML(allPhotos.slice(0, 6))}</div>
+                </div>
+            `;
+            book.appendChild(page);
+        }
+
+        function createGridPage(photosFront, photosBack, index) {
+            if (photosFront.length === 0 && photosBack.length === 0) return;
+
+            const page = document.createElement('div');
+            page.className = 'page';
+            
+            const frontHTML = photosFront.length > 0 
+                ? `<div class="photo-grid">${generateGridHTML(photosFront)}</div>`
+                : `<div class="flex items-center justify-center h-full text-gray-300">Fin del contenido</div>`;
+
+            const backHTML = photosBack.length > 0
+                ? `<div class="photo-grid">${generateGridHTML(photosBack)}</div>`
+                : `<div class="flex items-center justify-center h-full text-gray-300 italic">Espacio para notas</div>`;
+
+            page.innerHTML = `
+                <div class="front">
+                    ${frontHTML}
+                </div>
+                <div class="back">
+                    ${backHTML}
+                </div>
+            `;
+            
+            // Añadir logo mini a ambas caras
+            const frontDiv = page.querySelector('.front');
+            const backDiv = page.querySelector('.back');
+            
+            const logoFront = document.createElement('img');
+            logoFront.src = 'logo_mini.png';
+            logoFront.alt = 'Logo Mobil';
+            logoFront.className = 'footer-logo';
+            frontDiv.appendChild(logoFront);
+            
+            const logoBack = document.createElement('img');
+            logoBack.src = 'logo_mini.png';
+            logoBack.alt = 'Logo Mobil';
+            logoBack.className = 'footer-logo';
+            backDiv.appendChild(logoBack);
+            book.appendChild(page);
+        }
+
+        function createBackCover() {
+            const page = document.createElement('div');
+            page.className = 'page';
+            page.innerHTML = `
+                <div class="front">
+                    <div class="flex flex-col items-center justify-center h-full text-gray-400">
+                        <p>Total de fotografías: ${allPhotos.length}</p>
+                    </div>
+                </div>
+                <div class="back cover-back"></div>
+            `;
+
+            // Añadir logo mini a contraportada
+            const frontDiv = page.querySelector('.front');
+            const backDiv = page.querySelector('.back');
+            
+            const logoFront = document.createElement('img');
+            logoFront.src = 'logo_mini.png';
+            logoFront.alt = 'Logo Mobil';
+            logoFront.className = 'footer-logo';
+            frontDiv.appendChild(logoFront);
+            
+            const logoBack = document.createElement('img');
+            logoBack.src = 'logo_mini.png';
+            logoBack.alt = 'Logo Mobil';
+            logoBack.className = 'footer-logo';
+            backDiv.appendChild(logoBack);
+            
+            book.appendChild(page);
+        }
+
+        function generateGridHTML(photos) {
+            return photos.map(src => `
+                <div class="photo-wrapper">
+                    <img src="${src}" alt="Recuerdo" loading="lazy">
+                </div>
+            `).join('');
+        }
+
+        function flipNextPage() {
+            const pages = Array.from(document.querySelectorAll('.page'));
+            if (currentPage >= pages.length) return;
+
+            pages[currentPage].classList.add('flipped');
+            currentPage += 1;
+            updateZIndex();
+        }
+
+        function flipPrevPage() {
+            const pages = Array.from(document.querySelectorAll('.page'));
+            if (currentPage <= 0) return;
+
+            currentPage -= 1;
+            pages[currentPage].classList.remove('flipped');
+            updateZIndex();
+        }
+
+        function handleBookTap(clientX) {
+            const rect = book.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const leftZone = rect.width * 0.45;
+            const rightZone = rect.width * 0.55;
+
+            if (x >= rightZone) {
+                flipNextPage();
+            } else if (x <= leftZone) {
+                flipPrevPage();
+            }
+        }
+
+        function setupBookInteractions() {
+            let touchStartX = 0;
+
+            book.addEventListener('click', function(event) {
+                if (Date.now() - lastTouchTime < 500) return;
+                handleBookTap(event.clientX);
+            });
+
+            book.addEventListener('touchstart', function(event) {
+                touchStartX = event.changedTouches[0].clientX;
+            }, { passive: true });
+
+            book.addEventListener('touchend', function(event) {
+                const touchEndX = event.changedTouches[0].clientX;
+                const deltaX = touchEndX - touchStartX;
+                lastTouchTime = Date.now();
+
+                if (Math.abs(deltaX) > 35) {
+                    if (deltaX < 0) {
+                        flipNextPage();
+                    } else {
+                        flipPrevPage();
+                    }
+                    return;
+                }
+
+                handleBookTap(touchEndX);
+            }, { passive: true });
+        }
+
+        function updateZIndex() {
+            const pages = Array.from(document.querySelectorAll('.page'));
+            pages.forEach((page, index) => {
+                if (page.classList.contains('flipped')) {
+                    page.style.zIndex = index;
+                } else {
+                    page.style.zIndex = pages.length - index;
+                }
+            });
+        }
+
+        initAlbum();
+    </script>
+</body>
+</html>
