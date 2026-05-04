@@ -466,6 +466,7 @@
         const book = document.getElementById('book');
         let currentPage = 0;
         let lastTouchTime = 0;
+        let lastSwipeFlipTime = 0;
 
         function initAlbum() {
             // Generar Portada
@@ -774,27 +775,48 @@
             if (btnPrev) btnPrev.addEventListener('click', flipPrevPage);
             if (btnNext) btnNext.addEventListener('click', flipNextPage);
 
-            // En móvil, se desactiva el paso de página por toque/deslizamiento
-            // para priorizar el popup de foto/video al tocar.
-            if (isMobile()) {
-                return;
+            const mobile = isMobile();
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let canSwipeFlip = true;
+
+            if (!mobile) {
+                book.addEventListener('click', function(event) {
+                    if (Date.now() - lastTouchTime < 500) return;
+                    handleBookTap(event.clientX);
+                });
             }
 
-            let touchStartX = 0;
-
-            book.addEventListener('click', function(event) {
-                if (Date.now() - lastTouchTime < 500) return;
-                handleBookTap(event.clientX);
-            });
-
             book.addEventListener('touchstart', function(event) {
-                touchStartX = event.changedTouches[0].clientX;
+                const touch = event.changedTouches[0];
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+                canSwipeFlip = event.changedTouches.length === 1;
             }, { passive: true });
 
             book.addEventListener('touchend', function(event) {
-                const touchEndX = event.changedTouches[0].clientX;
-                const deltaX = touchEndX - touchStartX;
+                if (!canSwipeFlip) return;
+
+                const lightbox = document.getElementById('lightbox');
+                if (lightbox && lightbox.classList.contains('open')) return;
+
+                const touch = event.changedTouches[0];
+                const deltaX = touch.clientX - touchStartX;
+                const deltaY = touch.clientY - touchStartY;
                 lastTouchTime = Date.now();
+
+                // En móvil: solo swipe horizontal para cambiar página.
+                if (mobile) {
+                    if (Math.abs(deltaX) > 35 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                        lastSwipeFlipTime = Date.now();
+                        if (deltaX < 0) {
+                            flipNextPage();
+                        } else {
+                            flipPrevPage();
+                        }
+                    }
+                    return;
+                }
 
                 if (Math.abs(deltaX) > 35) {
                     if (deltaX < 0) {
@@ -805,7 +827,7 @@
                     return;
                 }
 
-                handleBookTap(touchEndX);
+                handleBookTap(touch.clientX);
             }, { passive: true });
         }
 
@@ -865,6 +887,11 @@
 
             // Delegar clics en photo-wrappers; capture:true para interceptar ANTES del handler de giro de página
             document.getElementById('book').addEventListener('click', function (e) {
+                // Si el clic viene justo despues de un swipe, no abrir popup.
+                if (Date.now() - lastSwipeFlipTime < 450) {
+                    return;
+                }
+
                 const wrapper = e.target.closest('.photo-wrapper');
                 if (!wrapper) return;
 
