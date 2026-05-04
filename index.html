@@ -312,9 +312,81 @@
                 font-size: 1.5rem;
             }
         }
+
+        /* ─── Lightbox ─────────────────────────────────── */
+        #lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0,0,0,0.93);
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
+            animation: lb-in 0.2s ease;
+        }
+
+        #lightbox.open {
+            display: flex;
+        }
+
+        @keyframes lb-in {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        #lightbox-media {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+            box-shadow: 0 8px 48px rgba(0,0,0,0.8);
+        }
+
+        #lightbox-video {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 6px;
+            box-shadow: 0 8px 48px rgba(0,0,0,0.8);
+            outline: none;
+        }
+
+        #lightbox-close {
+            position: fixed;
+            top: 14px;
+            right: 18px;
+            color: white;
+            font-size: 2rem;
+            line-height: 1;
+            background: rgba(255,255,255,0.12);
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            z-index: 10000;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #lightbox-close:hover {
+            background: rgba(255,255,255,0.25);
+        }
+        /* ──────────────────────────────────────────────── */
     </style>
 </head>
 <body>
+
+    <!-- Lightbox -->
+    <div id="lightbox" role="dialog" aria-modal="true" aria-label="Visor de imagen">
+        <button id="lightbox-close" aria-label="Cerrar">&times;</button>
+        <img id="lightbox-media" src="" alt="" style="display:none;">
+        <video id="lightbox-video" controls playsinline style="display:none;"></video>
+    </div>
 
     <div id="book" class="book-container">
         <div class="book-left-cover"></div>
@@ -717,6 +789,70 @@
                 }
             });
         }
+
+        /* ─── Lightbox ─────────────────────────────────── */
+        (function () {
+            const lightbox  = document.getElementById('lightbox');
+            const lbImg     = document.getElementById('lightbox-media');
+            const lbVideo   = document.getElementById('lightbox-video');
+            const lbClose   = document.getElementById('lightbox-close');
+
+            function openLightbox(src, isVideo) {
+                if (isVideo) {
+                    lbImg.style.display   = 'none';
+                    lbVideo.style.display = '';
+                    lbVideo.src           = src;
+                    lbVideo.load();
+                    lbVideo.play().catch(() => {});
+                } else {
+                    lbVideo.style.display = 'none';
+                    lbImg.style.display   = '';
+                    lbImg.src             = src;
+                }
+                lightbox.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeLightbox() {
+                lightbox.classList.remove('open');
+                lbVideo.pause();
+                lbVideo.src = '';
+                lbImg.src   = '';
+                document.body.style.overflow = '';
+            }
+
+            lbClose.addEventListener('click', closeLightbox);
+
+            // Cerrar tocando el fondo oscuro
+            lightbox.addEventListener('click', function (e) {
+                if (e.target === lightbox) closeLightbox();
+            });
+
+            // Cerrar con Escape en desktop
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeLightbox();
+            });
+
+            // Delegar clics en photo-wrappers; capture:true para interceptar ANTES del handler de giro de página
+            document.getElementById('book').addEventListener('click', function (e) {
+                const wrapper = e.target.closest('.photo-wrapper');
+                if (!wrapper) return;
+
+                e.stopPropagation();
+
+                const video = wrapper.querySelector('video.lazy-media');
+                const img   = wrapper.querySelector('img.lazy-media');
+
+                if (video) {
+                    const src = video.getAttribute('src') || video.getAttribute('data-src');
+                    if (src) openLightbox(src, true);
+                } else if (img) {
+                    const src = img.getAttribute('src') || img.getAttribute('data-src');
+                    if (src) openLightbox(src, false);
+                }
+            }, true);
+        })();
+        /* ──────────────────────────────────────────────── */
 
         initAlbum();
     </script>
