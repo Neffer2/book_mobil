@@ -184,26 +184,38 @@
 
         @media (max-width: 640px) {
             :root {
-                --page-width: 47vw;
-                --book-width: calc(var(--page-width) * 2);
-                --book-height: min(calc(var(--page-width) * 4 / 3), 68vh);
+                /* Una sola página a la vez en móvil vertical */
+                --page-width: min(94vw, 400px);
+                --book-width: var(--page-width);
+                --book-height: min(calc(var(--page-width) * 4 / 3), 70vh);
             }
 
             body {
-                padding-top: 12px;
-                padding-bottom: 16px;
+                justify-content: center;
+                padding: 0;
+                min-height: 100dvh;
+            }
+
+            /* Páginas ocupan todo el ancho del libro */
+            .page {
+                width: 100%;
+                left: 0;
+            }
+
+            /* Ocultar panel izquierdo: no aplica en vista simple */
+            .book-left-cover {
+                display: none;
             }
 
             .front, .back {
                 padding: 8px;
-                border-radius: 0 10px 10px 0;
+                border-radius: 8px;
             }
 
-            .back {
-                border-radius: 10px 0 0 10px;
-            }
-
+            /* Grid 3 columnas × 2 filas: fotos más anchas en pantalla vertical */
             .photo-grid {
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(2, 1fr);
                 gap: 5px;
             }
 
@@ -213,12 +225,18 @@
             }
 
             .footer-logo {
-                width: 22px;
-                bottom: 5px;
+                width: 20px;
+                bottom: 4px;
             }
 
-            .front .footer-logo { right: 6px; }
-            .back .footer-logo { left: 6px; }
+            .front .footer-logo { right: 5px; }
+            .back .footer-logo { left: 5px; }
+
+            .cover-front h1 {
+                font-size: clamp(1rem, 6vw, 1.5rem);
+                letter-spacing: 2px;
+                padding: 10px 14px;
+            }
         }
 
         /* Efecto de lomo de libro */
@@ -246,40 +264,40 @@
     <script>
         // Archivos locales del album
         const mediaFiles = [
-            "fotos/IMG_7330.mp4",
-            "fotos/IMG_7332.jpg",
-            "fotos/IMG_7355.mp4",
-            "fotos/IMG_7357.mp4",
-            "fotos/IMG_7364.jpg",
-            "fotos/IMG_7374.jpg",
-            "fotos/IMG_7393.jpg",
-            "fotos/IMG_7410.jpg",
-            "fotos/IMG_7412.jpg",
-            "fotos/IMG_7458.jpg",
-            "fotos/IMG_7460.jpg",
-            "fotos/IMG_7496.mp4",
-            "fotos/IMG_7523.jpg",
-            "fotos/IMG_7537.mp4",
-            "fotos/IMG_7548.jpg",
-            "fotos/IMG_7561.mp4",
-            "fotos/IMG_7564.jpg",
-            "fotos/IMG_7571.jpg",
-            "fotos/IMG_7645.jpg",
-            "fotos/IMG_7648.jpg",
-            "fotos/IMG_7656.jpg",
-            "fotos/IMG_7676.jpg",
-            "fotos/IMG_7683.jpg",
-            "fotos/IMG_7698.jpg",
-            "fotos/IMG_7700.jpg",
-            "fotos/IMG_7705.jpg",
-            "fotos/IMG_7721.jpg",
-            "fotos/IMG_7724.jpg",
-            "fotos/IMG_7727.jpg",
-            "fotos/IMG_7743.jpg",
-            "fotos/IMG_7750.jpg",
-            "fotos/IMG_7764.jpg",
-            "fotos/IMG_7766.jpg",
-            "fotos/IMG_7769.jpg"
+            "fotos/Thumbs/IMG_7330.mp4",
+            "fotos/Thumbs/IMG_7332.jpg",
+            "fotos/Thumbs/IMG_7355.mp4",
+            "fotos/Thumbs/IMG_7357.mp4",
+            "fotos/Thumbs/IMG_7364.jpg",
+            "fotos/Thumbs/IMG_7374.jpg",
+            "fotos/Thumbs/IMG_7393.jpg",
+            "fotos/Thumbs/IMG_7410.jpg",
+            "fotos/Thumbs/IMG_7412.jpg",
+            "fotos/Thumbs/IMG_7458.jpg",
+            "fotos/Thumbs/IMG_7460.jpg",
+            "fotos/Thumbs/IMG_7496.mp4",
+            "fotos/Thumbs/IMG_7523.jpg",
+            "fotos/Thumbs/IMG_7537.mp4",
+            "fotos/Thumbs/IMG_7548.jpg",
+            "fotos/Thumbs/IMG_7561.mp4",
+            "fotos/Thumbs/IMG_7564.jpg",
+            "fotos/Thumbs/IMG_7571.jpg",
+            "fotos/Thumbs/IMG_7645.jpg",
+            "fotos/Thumbs/IMG_7648.jpg",
+            "fotos/Thumbs/IMG_7656.jpg",
+            "fotos/Thumbs/IMG_7676.jpg",
+            "fotos/Thumbs/IMG_7683.jpg",
+            "fotos/Thumbs/IMG_7698.jpg",
+            "fotos/Thumbs/IMG_7700.jpg",
+            "fotos/Thumbs/IMG_7705.jpg",
+            "fotos/Thumbs/IMG_7721.jpg",
+            "fotos/Thumbs/IMG_7724.jpg",
+            "fotos/Thumbs/IMG_7727.jpg",
+            "fotos/Thumbs/IMG_7743.jpg",
+            "fotos/Thumbs/IMG_7750.jpg",
+            "fotos/Thumbs/IMG_7764.jpg",
+            "fotos/Thumbs/IMG_7766.jpg",
+            "fotos/Thumbs/IMG_7769.jpg"
         ];
 
         // Elimina duplicados conservando el orden original.
