@@ -48,7 +48,8 @@
             left: 0;
             transform-origin: left;
             transform-style: preserve-3d;
-            transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+            transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
             cursor: pointer;
         }
 
@@ -125,10 +126,30 @@
             z-index: 10;
         }
 
-        .photo-wrapper img {
+        .photo-wrapper img,
+        .photo-wrapper video {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        .unsupported-media {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 12px;
+            text-align: center;
+            color: #6b7280;
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            font-size: 0.72rem;
+            line-height: 1.35;
+        }
+
+        .unsupported-media strong {
+            color: #111827;
+            font-size: 0.78rem;
         }
 
         .footer-logo {
@@ -202,35 +223,63 @@
     <p class="mt-6 md:mt-12 text-gray-400 italic text-xs md:text-sm text-center px-4">Toca las páginas para explorar los recuerdos</p>
 
     <script>
-        // Array de fotos de ejemplo (puedes añadir muchísimas más)
-        const allPhotos = [
-            "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400",
-            "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400",
-            "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400",
-            "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400",
-            "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400",
-            "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=400",
-            "https://images.unsplash.com/photo-1433086566207-c5858314ee1c?w=400",
-            "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=400",
-            "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400",
-            "https://images.unsplash.com/photo-1475924156735-512359561b3e?w=400",
-            "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=400",
-            "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=400",
-            "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=400",
-            "https://images.unsplash.com/photo-1431411207774-da3c7311b5a8?w=400",
-            "https://images.unsplash.com/photo-1510784722466-f2aa9c52fed6?w=400",
-            "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400",
-            "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=400",
-            "https://images.unsplash.com/photo-1505144808419-1957a94ca61e?w=400",
-            "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400",
-            "https://images.unsplash.com/photo-1490730141103-6ac217d994b4?w=400",
-            "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400",
-            "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400",
-            "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400",
-            "https://images.unsplash.com/photo-1444464666168-49d633b867ad?w=400"
+        // Archivos locales del album
+        const mediaFiles = [
+            "fotos/IMG_7330.mp4",
+            "fotos/IMG_7332.jpg",
+            "fotos/IMG_7355.mp4",
+            "fotos/IMG_7357.mp4",
+            "fotos/IMG_7364.jpg",
+            "fotos/IMG_7374.jpg",
+            "fotos/IMG_7393.jpg",
+            "fotos/IMG_7410.jpg",
+            "fotos/IMG_7412.jpg",
+            "fotos/IMG_7458.jpg",
+            "fotos/IMG_7460.jpg",
+            "fotos/IMG_7496.mp4",
+            "fotos/IMG_7523.jpg",
+            "fotos/IMG_7537.mp4",
+            "fotos/IMG_7548.jpg",
+            "fotos/IMG_7561.mp4",
+            "fotos/IMG_7564.jpg",
+            "fotos/IMG_7571.jpg",
+            "fotos/IMG_7645.jpg",
+            "fotos/IMG_7648.jpg",
+            "fotos/IMG_7656.jpg",
+            "fotos/IMG_7676.jpg",
+            "fotos/IMG_7683.jpg",
+            "fotos/IMG_7698.jpg",
+            "fotos/IMG_7700.jpg",
+            "fotos/IMG_7705.jpg",
+            "fotos/IMG_7721.jpg",
+            "fotos/IMG_7724.jpg",
+            "fotos/IMG_7727.jpg",
+            "fotos/IMG_7743.jpg",
+            "fotos/IMG_7750.jpg",
+            "fotos/IMG_7764.jpg",
+            "fotos/IMG_7766.jpg",
+            "fotos/IMG_7769.jpg"
         ];
 
+        // Elimina duplicados conservando el orden original.
+        const allPhotos = [...new Set(mediaFiles)];
+
         const PHOTOS_PER_FACE = 6;
+        const COVER_BACK_PHOTOS = 6;
+        const VIDEO_FALLBACK_POSTER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+                <defs>
+                    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#111827"/>
+                        <stop offset="100%" stop-color="#374151"/>
+                    </linearGradient>
+                </defs>
+                <rect width="400" height="300" fill="url(#bg)"/>
+                <circle cx="200" cy="150" r="44" fill="rgba(255,255,255,0.15)"/>
+                <polygon points="188,126 188,174 230,150" fill="#ffffff"/>
+                <text x="200" y="262" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="Arial, sans-serif" font-size="20">VIDEO</text>
+            </svg>
+        `)}`;
         const book = document.getElementById('book');
         let currentPage = 0;
         let lastTouchTime = 0;
@@ -242,12 +291,13 @@
             // Generar Páginas con cuadrícula
             // Cada página tiene 2 caras, cada cara tiene PHOTOS_PER_FACE
             const photosPerPage = PHOTOS_PER_FACE * 2;
-            const totalPages = Math.ceil((allPhotos.length) / photosPerPage);
+            const remainingPhotos = allPhotos.slice(COVER_BACK_PHOTOS);
+            const totalPages = Math.ceil(remainingPhotos.length / photosPerPage);
 
             for (let i = 0; i < totalPages; i++) {
                 const startIdx = i * photosPerPage;
-                const face1Photos = allPhotos.slice(startIdx, startIdx + PHOTOS_PER_FACE);
-                const face2Photos = allPhotos.slice(startIdx + PHOTOS_PER_FACE, startIdx + photosPerPage);
+                const face1Photos = remainingPhotos.slice(startIdx, startIdx + PHOTOS_PER_FACE);
+                const face2Photos = remainingPhotos.slice(startIdx + PHOTOS_PER_FACE, startIdx + photosPerPage);
                 
                 createGridPage(face1Photos, face2Photos, i + 1);
             }
@@ -257,6 +307,9 @@
 
             // Ajustar Z-index inicial
             updateZIndex();
+
+            // Cargar solo medios cercanos para acelerar la interacción.
+            hydrateMediaNearCurrentPage();
 
             // Interacciones globales para escritorio y móvil
             setupBookInteractions();
@@ -272,7 +325,7 @@
                     <p class="mt-4 opacity-70">2026</p>
                 </div>
                 <div class="back">
-                    <div class="photo-grid">${generateGridHTML(allPhotos.slice(0, 6))}</div>
+                    <div class="photo-grid">${generateGridHTML(allPhotos.slice(0, COVER_BACK_PHOTOS))}</div>
                 </div>
             `;
             book.appendChild(page);
@@ -325,7 +378,7 @@
             page.innerHTML = `
                 <div class="front">
                     <div class="flex flex-col items-center justify-center h-full text-gray-400">
-                        <p>Total de fotografías: ${allPhotos.length}</p>
+                        <p>Total de archivos del album: ${allPhotos.length}</p>
                     </div>
                 </div>
                 <div class="back cover-back"></div>
@@ -350,12 +403,109 @@
             book.appendChild(page);
         }
 
+        function getFileExtension(src) {
+            return src.split('.').pop().toLowerCase();
+        }
+
+        function isVideoFile(src) {
+            return ['mp4', 'mov', 'webm', 'ogg'].includes(getFileExtension(src));
+        }
+
+        function isBrowserFriendlyImage(src) {
+            return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg'].includes(getFileExtension(src));
+        }
+
         function generateGridHTML(photos) {
-            return photos.map(src => `
-                <div class="photo-wrapper">
-                    <img src="${src}" alt="Recuerdo" loading="lazy">
-                </div>
-            `).join('');
+            return photos.map(src => {
+                if (isVideoFile(src)) {
+                    return `
+                        <div class="photo-wrapper">
+                            <video data-src="${src}" class="lazy-media" muted playsinline preload="none" controls poster="${VIDEO_FALLBACK_POSTER}"></video>
+                        </div>
+                    `;
+                }
+
+                if (isBrowserFriendlyImage(src)) {
+                    return `
+                        <div class="photo-wrapper">
+                            <img data-src="${src}" class="lazy-media" alt="Recuerdo" loading="lazy" decoding="async">
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="photo-wrapper">
+                        <div class="unsupported-media">
+                            <strong>${src.split('/').pop()}</strong>
+                            <span>Formato no compatible en este navegador</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function applyVideoThumbnail(video) {
+            if (!(video instanceof HTMLVideoElement)) return;
+            if (video.getAttribute('data-poster-ready') === 'true') return;
+
+            const captureFrame = () => {
+                if (video.videoWidth === 0 || video.videoHeight === 0) return;
+
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return;
+
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const posterDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+                    video.setAttribute('poster', posterDataUrl);
+                } catch (error) {
+                    video.setAttribute('poster', VIDEO_FALLBACK_POSTER);
+                }
+
+                video.setAttribute('data-poster-ready', 'true');
+                video.pause();
+                video.currentTime = 0;
+            };
+
+            if (video.readyState >= 2) {
+                captureFrame();
+                return;
+            }
+
+            const onLoadedData = () => captureFrame();
+            const onError = () => {
+                video.setAttribute('poster', VIDEO_FALLBACK_POSTER);
+                video.setAttribute('data-poster-ready', 'true');
+            };
+
+            video.addEventListener('loadeddata', onLoadedData, { once: true });
+            video.addEventListener('error', onError, { once: true });
+        }
+
+        function hydrateMediaNearCurrentPage() {
+            const pages = Array.from(document.querySelectorAll('.page'));
+
+            pages.forEach((page, pageIndex) => {
+                if (Math.abs(pageIndex - currentPage) > 1) return;
+
+                const lazyMedia = page.querySelectorAll('.lazy-media:not([data-loaded="true"])');
+                lazyMedia.forEach(media => {
+                    const src = media.getAttribute('data-src');
+                    if (!src) return;
+
+                    media.setAttribute('src', src);
+                    media.setAttribute('data-loaded', 'true');
+
+                    if (media instanceof HTMLVideoElement) {
+                        media.setAttribute('preload', 'metadata');
+                        applyVideoThumbnail(media);
+                    }
+                });
+            });
         }
 
         function flipNextPage() {
@@ -365,6 +515,7 @@
             pages[currentPage].classList.add('flipped');
             currentPage += 1;
             updateZIndex();
+            hydrateMediaNearCurrentPage();
         }
 
         function flipPrevPage() {
@@ -374,6 +525,7 @@
             currentPage -= 1;
             pages[currentPage].classList.remove('flipped');
             updateZIndex();
+            hydrateMediaNearCurrentPage();
         }
 
         function handleBookTap(clientX) {
