@@ -159,6 +159,102 @@
             height: 100%;
         }
 
+        /* ─── Layouts personalizados ───────────────────── */
+
+        .page-layout {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Página con texto */
+        .text-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            height: 100%;
+        }
+
+        .text-layout.reverse {
+            direction: rtl;
+        }
+
+        .text-layout.reverse > * {
+            direction: ltr;
+        }
+
+        .text-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .text-content h2 {
+            font-family: 'EMprint Bold';
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            color: #00104A;
+            margin-bottom: 12px;
+        }
+
+        .text-content p {
+            font-size: clamp(0.75rem, 1.2vw, 0.95rem);
+            line-height: 1.7;
+            color: #374151;
+        }
+
+        .text-photos {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            height: 100%;
+        }
+
+        /* Hero image */
+        .hero-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            height: 100%;
+        }
+
+        .hero-layout .photo-wrapper {
+            flex: 1;
+        }
+
+        .hero-caption {
+            background: #f8fafc;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #374151;
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            .text-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+
+            .text-content {
+                padding: 12px;
+            }
+
+            .text-content h2 {
+                font-size: 1rem;
+            }
+
+            .text-content p {
+                font-size: 0.78rem;
+                line-height: 1.5;
+            }
+        }
+
         .photo-wrapper {
             background: #e5e7eb;
             border: 3px solid white;
@@ -286,6 +382,82 @@
                 padding: 10px 14px;
             }
         }
+
+        /* ─── Loading Screen ─────────────────────────────── */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 24px;
+            transition: opacity 0.7s ease;
+        }
+
+        #loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #loading-logo {
+            width: clamp(100px, 18vw, 150px);
+            height: auto;
+            animation: loading-pulse 2.2s ease-in-out infinite;
+        }
+
+        @keyframes loading-pulse {
+            0%, 100% { opacity: 1;   transform: scale(1);    }
+            50%       { opacity: 0.7; transform: scale(0.96); }
+        }
+
+        #loading-spinner {
+            width: 46px;
+            height: 46px;
+            border: 3px solid rgba(255,255,255,0.15);
+            border-top-color: rgba(255,255,255,0.85);
+            border-radius: 50%;
+            animation: loading-spin 0.85s linear infinite;
+        }
+
+        @keyframes loading-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #loading-label {
+            color: rgba(255,255,255,0.65);
+            font-family: 'EMprint Regular', sans-serif;
+            font-size: 0.82rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        #loading-bar-wrap {
+            width: clamp(180px, 38vw, 280px);
+            height: 3px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        #loading-bar {
+            height: 100%;
+            background: rgba(255,255,255,0.88);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.22s ease;
+        }
+
+        #loading-count {
+            color: rgba(255,255,255,0.32);
+            font-family: 'EMprint Regular', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            margin-top: -10px;
+        }
+        /* ────────────────────────────────────────────────── */
 
         /* Efecto de lomo de libro */
         .page::before {
@@ -428,6 +600,16 @@
     </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <img src="logo_mobil.png" alt="Logo Mobil" id="loading-logo">
+        <div id="loading-spinner"></div>
+        <div id="loading-label">Cargando álbum</div>
+        <div id="loading-bar-wrap">
+            <div id="loading-bar"></div>
+        </div>
+        <div id="loading-count">0 / 0</div>
+    </div>
 
     <!-- Lightbox -->
     <div id="lightbox" role="dialog" aria-modal="true" aria-label="Visor de imagen">
@@ -497,23 +679,44 @@
         }
 
         const VIDEO_FALLBACK_POSTER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
-                <defs>
-                    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stop-color="#111827"/>
-                        <stop offset="100%" stop-color="#374151"/>
-                    </linearGradient>
-                </defs>
-                <rect width="400" height="300" fill="url(#bg)"/>
-                <circle cx="200" cy="150" r="44" fill="rgba(255,255,255,0.15)"/>
-                <polygon points="188,126 188,174 230,150" fill="#ffffff"/>
-                <text x="200" y="262" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="Arial, sans-serif" font-size="20">VIDEO</text>
-            </svg>
-        `)}`;
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+                        <defs>
+                            <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#111827"/>
+                                <stop offset="100%" stop-color="#374151"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="400" height="300" fill="url(#bg)"/>
+                        <circle cx="200" cy="150" r="44" fill="rgba(255,255,255,0.15)"/>
+                        <polygon points="188,126 188,174 230,150" fill="#ffffff"/>
+                        <text x="200" y="262" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="Arial, sans-serif" font-size="20">VIDEO</text>
+                    </svg>
+                `)}`;
         const book = document.getElementById('book');
         let currentPage = 0;
         let lastTouchTime = 0;
         let lastSwipeFlipTime = 0;
+
+        function playPageFlipSound() {
+
+            const audio = document.getElementById('page-flip-sound');
+
+            if (!audio) return;
+
+            try {
+                // Reinicia el audio para permitir flips rápidos
+                audio.currentTime = 0;
+
+                const playPromise = audio.play();
+
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {});
+                }
+
+            } catch (error) {
+                console.log(error);
+            }
+        }
 
         function initAlbum() {
             // Generar Portada
@@ -528,14 +731,85 @@
             const remainingPhotos = allPhotos.slice(coverSkip);
             const totalPages = Math.ceil(remainingPhotos.length / photosPerTurn);
 
-            for (let i = 0; i < totalPages; i++) {
-                const startIdx = i * photosPerTurn;
-                const face1Photos = remainingPhotos.slice(startIdx, startIdx + PHOTOS_PER_FACE);
-                const face2Photos = mobile
-                    ? []
-                    : remainingPhotos.slice(startIdx + PHOTOS_PER_FACE, startIdx + photosPerTurn);
-                createGridPage(face1Photos, face2Photos, i + 1);
-            }
+            const layouts = [
+
+                // Página normal
+                {
+                    front: {
+                        type: 'grid',
+                        photos: remainingPhotos.slice(0, 4)
+                    },
+
+                    back: {
+                        type: 'grid',
+                        photos: remainingPhotos.slice(4, 8)
+                    }
+                },
+
+                // Página con texto
+                {
+                    front: {
+                        type: 'text',
+
+                        title: 'Momentos Especiales',
+
+                        text: `
+                                Un recorrido por algunos de los mejores
+                                momentos vividos durante este proyecto.
+                                Cada fotografía representa trabajo,
+                                esfuerzo y grandes recuerdos compartidos.
+                            `,
+
+                        photos: remainingPhotos.slice(8, 10)
+                    },
+
+                    back: {
+                        type: 'grid',
+                        photos: remainingPhotos.slice(10, 14)
+                    }
+                },
+
+                // Hero image
+                {
+                    front: {
+                        type: 'hero',
+
+                        photo: remainingPhotos[14],
+
+                        caption: `
+                                Una de las imágenes más representativas
+                                del álbum Mobil Consorcio 2026.
+                            `
+                    },
+
+                    back: {
+                        type: 'grid',
+                        photos: remainingPhotos.slice(15, 19)
+                    }
+                },
+
+                // Resto automático
+                {
+                    front: {
+                        type: 'grid',
+                        photos: remainingPhotos.slice(19, 23)
+                    },
+
+                    back: {
+                        type: 'grid',
+                        photos: remainingPhotos.slice(23, 27)
+                    }
+                }
+
+            ];
+
+            layouts.forEach((layout, index) => {
+                createGridPage(
+                    layout.front,
+                    mobile ? null : layout.back,
+                    index + 1
+                );
+            });
 
             // Contraportada final solo en escritorio.
             if (!mobile) {
@@ -583,13 +857,13 @@
                 ? ''
                 : `<div class="photo-grid">${generateGridHTML(allPhotos.slice(0, COVER_BACK_PHOTOS))}</div>`;
             page.innerHTML = `
-                <div class="front cover-front">
-                    <img src="logo_mobil.png" alt="Logo Mobil" style="width: 150px; height: auto; margin-bottom: 30px;">
-                    <h1>Recuerdos<br>Mobil Consorcio</h1>
-                    <p class="mt-4 opacity-70">2026</p>
-                </div>
-                <div class="back">${backContent}</div>
-            `;
+                        <div class="front cover-front">
+                            <img src="logo_mobil.png" alt="Logo Mobil" style="width: 150px; height: auto; margin-bottom: 30px;">
+                            <h1>Recuerdos<br>Mobil Consorcio</h1>
+                            <p class="mt-4 opacity-70">2026</p>
+                        </div>
+                        <div class="back">${backContent}</div>
+                    `;
 
             const frontDiv = page.querySelector('.front');
             const backDiv = page.querySelector('.back');
@@ -617,43 +891,43 @@
             book.appendChild(page);
         }
 
-        function createGridPage(photosFront, photosBack, index) {
-            if (photosFront.length === 0 && photosBack.length === 0) return;
+        function createGridPage(frontLayout, backLayout, index) {
 
             const page = document.createElement('div');
             page.className = 'page';
-            
-            const frontHTML = photosFront.length > 0 
-                ? `<div class="photo-grid">${generateGridHTML(photosFront)}</div>`
-                : ``;
 
-            const backHTML = photosBack.length > 0
-                ? `<div class="photo-grid">${generateGridHTML(photosBack)}</div>`
-                : ``;
+            const frontHTML = frontLayout
+                ? generateLayoutHTML(frontLayout)
+                : '';
+
+            const backHTML = backLayout
+                ? generateLayoutHTML(backLayout)
+                : '';
 
             page.innerHTML = `
                 <div class="front">
                     ${frontHTML}
                 </div>
+
                 <div class="back">
                     ${backHTML}
                 </div>
             `;
-            
-            // Añadir logo mini a ambas caras
+
             const frontDiv = page.querySelector('.front');
             const backDiv = page.querySelector('.back');
 
             const frontFooter = document.createElement('div');
             frontFooter.className = 'page-footer';
-            
+
             const logoFront = document.createElement('img');
             logoFront.src = 'logo_mini.png';
             logoFront.alt = 'Logo Mobil';
             logoFront.className = 'footer-logo';
+
             frontFooter.appendChild(logoFront);
             frontDiv.appendChild(frontFooter);
-            
+
             const backFooter = document.createElement('div');
             backFooter.className = 'page-footer';
 
@@ -661,8 +935,10 @@
             logoBack.src = 'logo_mini.png';
             logoBack.alt = 'Logo Mobil';
             logoBack.className = 'footer-logo';
+
             backFooter.appendChild(logoBack);
             backDiv.appendChild(backFooter);
+
             book.appendChild(page);
         }
 
@@ -670,13 +946,13 @@
             const page = document.createElement('div');
             page.className = 'page';
             page.innerHTML = `
-                <div class="front">
-                    <div class="flex flex-col items-center justify-center h-full text-gray-400">
-                        <p>Total de archivos del album: ${allPhotos.length}</p>
-                    </div>
-                </div>
-                <div class="back cover-back"></div>
-            `;
+                        <div class="front">
+                            <div class="flex flex-col items-center justify-center h-full text-gray-400">
+                                <p>Total de archivos del album: ${allPhotos.length}</p>
+                            </div>
+                        </div>
+                        <div class="back cover-back"></div>
+                    `;
 
             // Añadir logo mini a contraportada
             const frontDiv = page.querySelector('.front');
@@ -684,14 +960,14 @@
 
             const frontFooter = document.createElement('div');
             frontFooter.className = 'page-footer';
-            
+
             const logoFront = document.createElement('img');
             logoFront.src = 'logo_mini.png';
             logoFront.alt = 'Logo Mobil';
             logoFront.className = 'footer-logo';
             frontFooter.appendChild(logoFront);
             frontDiv.appendChild(frontFooter);
-            
+
             const backFooter = document.createElement('div');
             backFooter.className = 'page-footer';
 
@@ -701,7 +977,7 @@
             logoBack.className = 'footer-logo';
             backFooter.appendChild(logoBack);
             backDiv.appendChild(backFooter);
-            
+
             book.appendChild(page);
         }
 
@@ -718,32 +994,98 @@
         }
 
         function generateGridHTML(photos) {
-            return photos.map(src => {
-                if (isVideoFile(src)) {
-                    return `
-                        <div class="photo-wrapper">
-                            <video data-src="${src}" class="lazy-media" muted playsinline preload="none" controls poster="${VIDEO_FALLBACK_POSTER}"></video>
-                        </div>
-                    `;
-                }
+            return photos.map(generateSinglePhotoHTML).join('');
+        }
 
-                if (isBrowserFriendlyImage(src)) {
-                    return `
-                        <div class="photo-wrapper">
-                            <img data-src="${src}" class="lazy-media" alt="Recuerdo" loading="lazy" decoding="async">
-                        </div>
-                    `;
-                }
+        function generateLayoutHTML(layout) {
 
+            // Layout clásico 2x2
+            if (layout.type === 'grid') {
                 return `
-                    <div class="photo-wrapper">
-                        <div class="unsupported-media">
-                            <strong>${src.split('/').pop()}</strong>
-                            <span>Formato no compatible en este navegador</span>
-                        </div>
+                    <div class="photo-grid">
+                        ${generateGridHTML(layout.photos)}
                     </div>
                 `;
-            }).join('');
+            }
+
+            // Layout con texto + 2 fotos
+            if (layout.type === 'text') {
+
+                const reverseClass = layout.reverse ? 'reverse' : '';
+
+                return `
+                    <div class="page-layout text-layout ${reverseClass}">
+
+                        <div class="text-content">
+                            <h2>${layout.title || ''}</h2>
+                            <p>${layout.text || ''}</p>
+                        </div>
+
+                        <div class="text-photos">
+                            ${generateGridHTML(layout.photos)}
+                        </div>
+
+                    </div>
+                `;
+            }
+
+            // Hero image + caption
+            if (layout.type === 'hero') {
+                return `
+                    <div class="page-layout hero-layout">
+
+                        ${generateSinglePhotoHTML(layout.photo)}
+
+                        <div class="hero-caption">
+                            ${layout.caption || ''}
+                        </div>
+
+                    </div>
+                `;
+            }
+
+            // Fallback
+            return '';
+        }
+
+        function generateSinglePhotoHTML(src) {
+            if (isVideoFile(src)) {
+                return `
+                    <div class="photo-wrapper">
+                        <video
+                            data-src="${src}"
+                            class="lazy-media"
+                            muted
+                            playsinline
+                            preload="none"
+                            controls
+                            poster="${VIDEO_FALLBACK_POSTER}">
+                        </video>
+                    </div>
+                `;
+            }
+
+            if (isBrowserFriendlyImage(src)) {
+                return `
+                    <div class="photo-wrapper">
+                        <img
+                            data-src="${src}"
+                            class="lazy-media"
+                            alt="Recuerdo"
+                            loading="lazy"
+                            decoding="async">
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="photo-wrapper">
+                    <div class="unsupported-media">
+                        <strong>${src.split('/').pop()}</strong>
+                        <span>Formato no compatible</span>
+                    </div>
+                </div>
+            `;
         }
 
         function applyVideoThumbnail(video) {
@@ -854,6 +1196,7 @@
             const pages = Array.from(document.querySelectorAll('.page'));
             if (currentPage >= pages.length - 1) return;
 
+            playPageFlipSound();
             pages[currentPage].classList.add('flipped');
             currentPage += 1;
             updateZIndex();
@@ -865,6 +1208,7 @@
             const pages = Array.from(document.querySelectorAll('.page'));
             if (currentPage <= 0) return;
 
+            playPageFlipSound();
             currentPage -= 1;
             pages[currentPage].classList.remove('flipped');
             updateZIndex();
@@ -1038,11 +1382,60 @@
         })();
         /* ──────────────────────────────────────────────── */
 
-        setTimeout(() => {
-            preloadRemainingMedia();
-        }, 1500);
+        (async function startAlbum() {
+            // 1. Construir el libro (DOM) detrás de la pantalla de carga
+            initAlbum();
 
-        initAlbum();
+            // 2. Precargar todas las imágenes antes de mostrar el álbum
+            const imagesToPreload = mediaFiles.filter(src => !isVideoFile(src));
+            const total = imagesToPreload.length;
+            let loaded = 0;
+
+            const bar      = document.getElementById('loading-bar');
+            const countEl  = document.getElementById('loading-count');
+
+            if (countEl) countEl.textContent = `0 / ${total}`;
+
+            function updateProgress() {
+                loaded++;
+                const pct = Math.round((loaded / total) * 100);
+                if (bar)     bar.style.width       = pct + '%';
+                if (countEl) countEl.textContent   = `${loaded} / ${total}`;
+            }
+
+            await Promise.all(imagesToPreload.map(src => new Promise(resolve => {
+                const img = new Image();
+                img.onload  = () => { updateProgress(); resolve(); };
+                img.onerror = () => { updateProgress(); resolve(); };
+                img.src = src;
+            })));
+
+            // 3. Asignar src a TODOS los elementos lazy del DOM (ya están en caché → renderizado instantáneo)
+            document.querySelectorAll('.lazy-media[data-src]').forEach(media => {
+                if (media.getAttribute('data-loaded') === 'true') return;
+                const src = media.getAttribute('data-src');
+                if (!src) return;
+                media.setAttribute('src', src);
+                media.setAttribute('data-loaded', 'true');
+                if (media instanceof HTMLVideoElement) {
+                    media.setAttribute('preload', 'metadata');
+                }
+            });
+
+            // 4. Todas las imágenes cargadas → ocultar pantalla de carga
+            const screen = document.getElementById('loading-screen');
+            if (screen) {
+                screen.classList.add('fade-out');
+                setTimeout(() => { screen.style.display = 'none'; }, 750);
+            }
+
+            // 5. Precarga diferida en segundo plano (videos u otros)
+            setTimeout(() => { preloadRemainingMedia(); }, 800);
+        })();
     </script>
+
+    <audio id="page-flip-sound" preload="auto">
+        <source src="sounds/page_flip.mp3" type="audio/mpeg">
+    </audio>
 </body>
 </html>
